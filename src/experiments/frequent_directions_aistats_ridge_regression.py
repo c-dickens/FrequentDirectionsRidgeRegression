@@ -1,5 +1,10 @@
 import numpy as np
-from .frequent_directions import FastFrequentDirections, RobustFrequentDirections
+import sys
+import os
+from pathlib import Path
+path = Path(os.getcwd())
+sys.path.append(str(path.parent.parent/ 'src'))
+from frequent_directions import FastFrequentDirections, RobustFrequentDirections
 
 class FDRidge:
     
@@ -23,9 +28,9 @@ class FDRidge:
         Private function for calling the sketch methods
         '''
         if self.fd_mode == 'FD':
-            sketcher = FastFrequentDirections(X.shape[1],m=self.fd_dim)
+            sketcher = FastFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
         elif self.fd_mode == 'RFD':
-            sketcher = RobustFrequentDirections(X.shape[1],m=self.fd_dim)
+            sketcher = RobustFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
         sketcher.fit(X,batch_size=self.fd_dim)
         self.sketch = sketcher.sketch
         self.alpha = sketcher.delta # == 0 if using FastFrequentDirections so can use self.gamma + self.alpha everywhere 
