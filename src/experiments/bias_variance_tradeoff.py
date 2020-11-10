@@ -1,10 +1,8 @@
 from data_factory import DataFactory
-from frequent_directions import FastFrequentDirections, RobustFrequentDirections
-from frequent_directions_regression import FDRidge
-from random_projection_regression import RPRidge
+from frequent_directions_aistats_ridge_regression import FDRidge
+from random_projections_aistats_ridge_regression import RPRidge
 from sklearn.linear_model import Ridge,LinearRegression
 from plot_config import fd_params, rfd_params, sjlt_rp_params, gauss_rp_params, gauss_hs_params, sjlt_hs_params 
-from sklearn.datasets import make_regression
 import numpy as np
 from math import floor
 import matplotlib.pyplot as plt
@@ -187,13 +185,13 @@ def mse_experiment():
   
 
         print(f'γ:{g:.5f} c:{c:.5f} OPT:{mse:.5f} Lower:{lower:.5f} Upper:{upper:.5f} FD:{fd_mse:.5f} RFD:{rfd_mse:.5f} RP:{rp_mse:.5f} HS:{hes_mse:.5f}')
-        # Remove this when it comes to publishing the code.
-        if (fd_mse < lower) or (fd_mse > upper):
-            print('⚠️ - BOUND NOT MET 🚫 ')
-        if abs(fd_mse - mse) < abs(mse - hes_mse) :
-            print('⭐️ FD win ⭐️')
-        else:
-            print(f'Error to HS: ', abs(fd_mse - mse), abs(hes_mse - mse))
+    #     # Remove this when it comes to publishing the code.
+    #     if (fd_mse < lower) or (fd_mse > upper):
+    #         print('⚠️ - BOUND NOT MET 🚫 ')
+    #     if abs(fd_mse - mse) < abs(mse - hes_mse) :
+    #         print('⭐️ FD win ⭐️')
+    #     else:
+    #         print(f'Error to HS: ', abs(fd_mse - mse), abs(hes_mse - mse))
 
     # Make the plots 
     fig, ax = plt.subplots(nrows=2,ncols=3,gridspec_kw = {'wspace':0.15, 'hspace':0.0},figsize=(16,8))
@@ -268,7 +266,7 @@ def mse_experiment():
                 # facecolor='w', edgecolor='w')
     # bbox_inches='tight')
     #plt.show()
-    dict_save_name = 'figures/bias-variance-tradeoff_' + str(eff_rank)
+    dict_save_name = 'figures/bias_variance_tradeoff_' + str(eff_rank)
     print(dict_save_name)
     all_res = {
         'Gammas' : all_gammas,
