@@ -33,4 +33,4 @@ We test on open datasets such as the [California Housing Dataset](https://scikit
 ### Reproducibility
 This code runs on `Python 3.7.6` and uses only standard libraries (e.g `NumPy, scikit-learn, matplotlib, pandas`). 
 
-![An example](https://github.com/c-dickens/FrequentDirectionsRidgeRegression/blob/main/src/experiments/figures/california_housing.pdf)
+![An example](src/experiments/figures/california_housing.pdf)
