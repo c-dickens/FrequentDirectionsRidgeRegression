@@ -173,7 +173,7 @@ def make_plots(gammas, exact_results, rfd_results, cl_results, hs_results):
         
         # VALID Fill error region
         #ax_va.fill_between(gammas,_mean - _std, _mean+_std,alpha=ALPHA)
-    ax_va.set_ylim(0,0.25)
+    ax_va.set_ylim(0,0.1)
 
 
 
