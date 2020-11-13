@@ -33,4 +33,4 @@ We test on open datasets such as the [California Housing Dataset](https://scikit
 ### Reproducibility
 This code runs on `Python 3.7.6` and uses only standard libraries (e.g `NumPy, scikit-learn, matplotlib, pandas`). 
 
-![alt text](src/experiments/figures/california_housing.jpg)
+![Experiment Plot](src/experiments/figures/california_housing.jpg)
