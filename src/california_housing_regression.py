@@ -52,7 +52,7 @@ def main():
     
 
     # Experimental setup
-    num_trials = 1
+    num_trials = 5
     all_train_data = np.concatenate((X_train_poly, X_valid_poly),axis=0)
     all_train_labels = np.concatenate((y_train, y_valid),axis=0)
 
@@ -159,7 +159,7 @@ def make_plots(gammas, exact_results, rfd_results, cl_results, hs_results):
         ax_tr.plot(gammas, _med, label=l, marker=_marker)
         
         # TRAIN Fill error region
-        ax_tr.fill_between(gammas,_mean - _std, _mean+_std,alpha=ALPHA)
+        #ax_tr.fill_between(gammas,_mean - _std, _mean+_std,alpha=ALPHA)
     ax_tr.set_ylim(0,0.025)
 
 
@@ -172,7 +172,7 @@ def make_plots(gammas, exact_results, rfd_results, cl_results, hs_results):
         ax_va.plot(gammas, _med, label=l)
         
         # VALID Fill error region
-        ax_va.fill_between(gammas,_mean - _std, _mean+_std,alpha=ALPHA)
+        #ax_va.fill_between(gammas,_mean - _std, _mean+_std,alpha=ALPHA)
     ax_va.set_ylim(0,0.25)
 
 
@@ -186,7 +186,7 @@ def make_plots(gammas, exact_results, rfd_results, cl_results, hs_results):
         ax_te.plot(gammas, _med, label=l)
         
         # TEST Fill error region
-        ax_te.fill_between(gammas,_mean - _std, _mean+_std,alpha=ALPHA)
+        #ax_te.fill_between(gammas,_mean - _std, _mean+_std,alpha=ALPHA)
     ax_te.set_ylim(0,0.1)
     ax_te.set_xlabel(r'$\gamma$')
 
