@@ -34,3 +34,7 @@ We test on open datasets such as the [California Housing Dataset](https://scikit
 This code runs on `Python 3.7.6` and uses only standard libraries (e.g `NumPy, scikit-learn, matplotlib, pandas`). 
 
 ![Experiment Plot](src/experiments/figures/california_housing.jpg)
+
+### Future Work
+- Many works require getting the top m components via a power method or truncated SVD, can we sub in FD?
+- How does FD performance compare to power iteration?
