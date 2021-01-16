@@ -38,3 +38,4 @@ This code runs on `Python 3.7.6` and uses only standard libraries (e.g `NumPy, s
 ### Future Work
 - Many works require getting the top m components via a power method or truncated SVD, can we sub in FD?
 - How does FD performance compare to power iteration?
+- Multiple response ridge regression comparing frequent direcitons and co-occuring directions
