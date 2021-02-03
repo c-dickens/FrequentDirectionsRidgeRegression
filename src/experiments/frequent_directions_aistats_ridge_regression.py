@@ -16,6 +16,7 @@
 import numpy as np
 import sys
 import os
+from timeit import default_timer as timer
 from pathlib import Path
 path = Path(os.getcwd())
 sys.path.append(str(path.parent.parent/ 'src'))
@@ -23,7 +24,7 @@ from frequent_directions import FastFrequentDirections, RobustFrequentDirections
 
 class FDRidge:
     
-    def __init__(self, fd_dim:int,fd_mode='FD',gamma=1.0):
+    def __init__(self, fd_dim:int,fd_mode='FD',gamma=1.0,batch_size=None):
         """
         Approximate ridge regression using the FD sketch.
 
@@ -37,20 +38,20 @@ class FDRidge:
             raise NotImplementedError('Only F(ast) and R(obust) FD methods are supported.')
         self.gamma        = gamma
         self.is_fitted    = False
+        if batch_size == None:
+            self.batch_size = self.fd_dim
+        else:
+            self.batch_size = batch_size
 
-    def _sketch(self, X, batch_size=None):
+    def _sketch(self, X):
         '''
         Private function for calling the sketch methods
         '''
-        if batch_size == None:
-            bs = self.fd_dim
-        else:
-            bs = batch_size
         if self.fd_mode == 'FD':
             sketcher = FastFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
         elif self.fd_mode == 'RFD':
             sketcher = RobustFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
-        sketcher.fit(X,batch_size=bs)
+        sketcher.fit(X,batch_size=self.batch_size)
         self.sketch = sketcher.sketch
         self.alpha = sketcher.delta # == 0 if using FastFrequentDirections so can use self.gamma + self.alpha everywhere 
         self.is_fitted = True
@@ -84,6 +85,55 @@ class FDRidge:
             w += - H_inv@grad
             all_w[:,it] = np.squeeze(w)
         return np.squeeze(w), all_w
+
+    def fast_iterate(self,X,y,iterations):
+        """
+        Performs the iterations of ifdrr efficiently in small space and time.
+        """
+
+        # * Initialisation not timed
+        d = X.shape[1]
+        w = np.zeros((d,1),dtype=float)
+        all_w = np.zeros((d,iterations))
+        if self.fd_mode == 'FD':
+            sketcher = FastFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
+        elif self.fd_mode == 'RFD':
+            sketcher = RobustFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
+        measurables = {
+        'sketch time' : None,
+        'all_times'   : np.zeros(iterations+1,dtype=float),
+        'gradients'   : np.zeros((d,iterations),dtype=float),
+        'updates'     : np.zeros((d,iterations),dtype=float),
+        'sketch'      : None
+        }
+
+        # ! Sketching
+        TIMER_START = timer()
+        sketcher.fit(X,batch_size=self.batch_size)
+        SKETCH_TIME = timer() - TIMER_START
+        _, SigSq, Vt = sketcher.get()
+        V = Vt.T
+        invTerm = (1./(SigSq + self.gamma )).reshape(-1,1)
+
+        # Extra parameters we may need 
+        XTy = (X.T@y).reshape(-1,1)
+
+        # * This lambda function evaluates H^{-1}g efficiently for gradient vector g
+        H_inv_grad = lambda g, vtg : (1/self.gamma )*(g - V@vtg) + V@(invTerm*vtg)
+
+        for it in range(iterations):   
+            grad = X.T@(X@w) + self.gamma *w - XTy
+            VTg = Vt@grad
+            update = H_inv_grad(grad, VTg)
+            w += - update
+            all_w[:,it] = np.squeeze(w)
+            measurables['all_times'][it+1] = timer() - TIMER_START
+            measurables['gradients'][:,it] = np.squeeze(grad)
+            measurables['updates'][:,it] = np.squeeze(update)
+        measurables['sketch time'] = SKETCH_TIME
+        measurables['sketch'] = sketcher.sketch
+        return np.squeeze(w), all_w, measurables
+    
     
     def get_bias(self,X,w0):
         '''
