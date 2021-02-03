@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import numpy as np
+from timeit import default_timer as timer
 
 class RPRidge:
     
@@ -60,6 +61,55 @@ class RPRidge:
             w += - H_inv@grad
             all_w[:,it] = np.squeeze(w)
         return np.squeeze(w), all_w
+
+    def _naive_hessian_update(self, sketched_data, vec):
+        """
+        Naively performs the hessian update by evaluating the approximate Hessian 
+        and inverting.
+        """
+        H = sketched_data.T@sketched_data + (self.gamma)*np.eye(sketched_data.shape[1])
+        H_inv = np.linalg.pinv(H)
+        return H_inv@vec
+    
+    def _linear_solve_hessian_update(self, sketched_data, vec):
+        """
+        Implements the hessian_inv@gradient efficiently by using Woodbury.
+        """
+        K = sketched_data@sketched_data.T / self.gamma + np.eye(sketched_data.shape[0])
+        u = (1/self.gamma)*vec - (sketched_data.T / self.gamma**2)@(np.linalg.solve(K,sketched_data@vec))
+        return u
+
+    def iterate_multiple_timing(self, X, y, iterations=10):
+        """
+        Fits the iterated ridge model with a new sketch every iteration
+        """
+        # * Initialisation not timed
+        d = X.shape[1]
+        w = np.zeros((d,1),dtype=float)
+        all_w = np.zeros((d,iterations))
+        if self.rp_dim < d:
+            update_method = self._linear_solve_hessian_update
+        else:
+            update_method = self._naive_hessian_update
+
+        measurables = {
+        'sketch time' : None,
+        'all_times'   : np.zeros(iterations+1,dtype=float),
+        'gradients'   : np.zeros((d,iterations),dtype=float),
+        'updates'     : np.zeros((d,iterations),dtype=float),
+        'sketch'      : None
+        }
+
+        TIMER_START = timer()
+        XTy = (X.T@y).reshape(-1,1)
+        for it in range(iterations):
+            SA = self._get_sketch(X,seed=it)
+            grad = X.T@(X@w) + self.gamma*w - XTy
+            update = update_method(SA, grad)
+            w += - update 
+            all_w[:,it] = np.squeeze(w)
+            measurables['all_times'][it+1] = timer() - TIMER_START
+        return np.squeeze(w), all_w, measurables
 
 
     def _get_sketch(self,data,seed=10):
