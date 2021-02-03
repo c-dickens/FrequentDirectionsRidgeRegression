@@ -38,15 +38,19 @@ class FDRidge:
         self.gamma        = gamma
         self.is_fitted    = False
 
-    def _sketch(self, X):
+    def _sketch(self, X, batch_size=None):
         '''
         Private function for calling the sketch methods
         '''
+        if batch_size == None:
+            bs = self.fd_dim
+        else:
+            bs = batch_size
         if self.fd_mode == 'FD':
             sketcher = FastFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
         elif self.fd_mode == 'RFD':
             sketcher = RobustFrequentDirections(X.shape[1],sketch_dim=self.fd_dim)
-        sketcher.fit(X,batch_size=self.fd_dim)
+        sketcher.fit(X,batch_size=bs)
         self.sketch = sketcher.sketch
         self.alpha = sketcher.delta # == 0 if using FastFrequentDirections so can use self.gamma + self.alpha everywhere 
         self.is_fitted = True

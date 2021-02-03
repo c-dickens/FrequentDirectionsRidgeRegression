@@ -20,12 +20,15 @@ from sklearn.linear_model import Ridge,LinearRegression
 from plot_config import fd_params, rfd_params, gauss_single_params, sjlt_single_params, gauss_ihs_params, sjlt_ihs_params
 import numpy as np
 from math import floor
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.kernel_approximation import RBFSampler
 import matplotlib.pyplot as plt
 
 
 def synthetic_real_experiment(data_name,gamma_reg,ax=None):
     gamma = gamma_reg
-    n = 10000
+    n = 2000
     ds = DataFactory(n=n)
     if data_name == 'CoverType':
         X,y = ds.fetch_forest_cover()
@@ -39,15 +42,18 @@ def synthetic_real_experiment(data_name,gamma_reg,ax=None):
         X_train, X_test, y, y_test = train_test_split(_X, _y, test_size=0.4, random_state=42)
         rbf_feature = RBFSampler(gamma=0.0001, random_state=100,n_components=feature_size)
         X = rbf_feature.fit_transform(X_train)
+        rff_features = False
     else:
         X,y = ds.fetch_year_predictions()
         rff_features = True
-    X, y = X[:n], y[:n]
+
 
     # Whether to fit fourier features
     if rff_features:
+        X, y = X[:n], y[:n]
         X = ds.feature_expansion(X,n_extra_features=1024)
     d = X.shape[1]
+
 
 
     # Optimal solution
@@ -114,14 +120,15 @@ def synthetic_real_experiment(data_name,gamma_reg,ax=None):
     if gamma == 100.:
         ax.legend(ncol=2,loc='best')
     ax.set_yscale('log')
-    ax.set_xlabel('Iterations')
-    ax.set_ylabel(r'$\|\mathbf{x}^t - \mathbf{x}^*\|_2 / \| \mathbf{x}^*\|_2$')
-    fname = 'figures/iterative-'+data_name+str(gamma)+'.eps'
+    #ax.set_xlabel('Iterations')
+    #ax.set_ylabel(r'$\|\mathbf{x}^t - \mathbf{x}^*\|_2 / \| \mathbf{x}^*\|_2$')
+    #ax.set_ylabel('Error') # Use this if latex is not present
+    fname = '/home/dickens/code/FrequentDirectionsRidgeRegression/sandbox/figures/efficient-iterative-'+data_name+str(int(gamma))+'.png'
     fig.savefig(fname,dpi=150,bbox_inches='tight',pad_inches=None)
     #plt.show()
 def main():
-    datasets = ['w8a','CoverType', 'YearPredictions']
-    gammas = [10., 100., 1000.]
+    datasets = ['CaliforniaHousing']  #['w8a','CoverType', 'YearPredictions']
+    gammas = [100.]#, 100., 1000.]
     for d in datasets:
         for g in gammas:
             synthetic_real_experiment(d,g)

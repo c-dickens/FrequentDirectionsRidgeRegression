@@ -14,16 +14,16 @@
 # limitations under the License.
 
 import matplotlib as mpl
-mpl.use('TkAgg')
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 # Uncomment when ready to include latex as it takes longer to plot
 plt.rcParams.update({
-    "text.usetex": True,
+    #"text.usetex": True,
     "font.family": "serif",
     "font.sans-serif": ["Times"],
     "font.size" : 12,
-    "text.latex.preamble" : r"\usepackage{amsmath}"
+    #"text.latex.preamble" : r"\usepackage{amsmath}"
 })
 
 
