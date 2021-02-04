@@ -15,6 +15,16 @@
 
 import numpy as np
 
+def get_errors(arr,x):
+    e = [np.linalg.norm(arr[:,i] - x)/np.linalg.norm(x) for i in range(arr.shape[1])]
+    e.insert(0,1)
+    return e
+
+def get_x_opt(X,y,gamma):
+    H = X.T@X + gamma*np.eye(X.shape[1])
+    x_opt = np.linalg.solve(H,X.T@y)
+    return x_opt
+
 # Find where errors are > t
 def greater_than_thld(arr, thld):
     '''

@@ -43,10 +43,10 @@ rfd_params = {
 }
 
 sjlt_rp_params = {
-    'color'     : 'red',
+    'color'     : 'darkblue',
     'linewidth' : 1.5,
     'linestyle' : '--',
-    'marker'    : 'x',
+    'marker'    : '+',
     'markersize': 5.0
 }
 
@@ -55,7 +55,7 @@ gauss_rp_params = {
     'linewidth' : 1.5,
     'linestyle' : '--',
     'marker'    : 's',
-    'markersize': 5.0
+    'markersize': 3.0
 }
 
 gauss_hs_params = {

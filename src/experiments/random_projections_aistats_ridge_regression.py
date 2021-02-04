@@ -24,7 +24,7 @@ class RPRidge:
         self.gamma        = gamma
 
   
-    def iterate_single(self,X,y,iterations=10):
+    def iterate_single(self,X,y,iterations=10,seed=100):
         '''
         Fits the iterated ridge model with FD
         '''
@@ -34,7 +34,7 @@ class RPRidge:
         XTy = (X.T@y).reshape(-1,1)
         
         # Fit the FD
-        SA = self._get_sketch(X)
+        SA = self._get_sketch(X,seed)
         H = SA.T@SA + (self.gamma)*np.eye(d)
         H_inv = np.linalg.pinv(H)
         for it in range(iterations):
@@ -111,6 +111,38 @@ class RPRidge:
             measurables['all_times'][it+1] = timer() - TIMER_START
         return np.squeeze(w), all_w, measurables
 
+
+    def iterate_single_timing(self, X, y, iterations=10, seed=100):
+        """
+        Fits the iterated ridge model with a new sketch every iteration
+        """
+        # * Initialisation not timed
+        d = X.shape[1]
+        w = np.zeros((d,1),dtype=float)
+        all_w = np.zeros((d,iterations))
+        if self.rp_dim < d:
+            update_method = self._linear_solve_hessian_update
+        else:
+            update_method = self._naive_hessian_update
+
+        measurables = {
+        'sketch time' : None,
+        'all_times'   : np.zeros(iterations+1,dtype=float),
+        'gradients'   : np.zeros((d,iterations),dtype=float),
+        'updates'     : np.zeros((d,iterations),dtype=float),
+        'sketch'      : None
+        }
+
+        TIMER_START = timer()
+        XTy = (X.T@y).reshape(-1,1)
+        SA = self._get_sketch(X,seed)
+        for it in range(iterations):
+            grad = X.T@(X@w) + self.gamma*w - XTy
+            update = update_method(SA, grad)
+            w += - update 
+            all_w[:,it] = np.squeeze(w)
+            measurables['all_times'][it+1] = timer() - TIMER_START
+        return np.squeeze(w), all_w, measurables
 
     def _get_sketch(self,data,seed=10):
         '''
