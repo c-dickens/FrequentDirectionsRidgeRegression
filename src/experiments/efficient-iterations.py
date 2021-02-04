@@ -157,9 +157,11 @@ def synthetic_real_experiment(data_name,gamma_reg,ax=None):
     # fig.savefig(fname,dpi=150,bbox_inches='tight',pad_inches=None) 
     fig.savefig(fname,dpi=200,bbox_inches='tight',pad_inches=None)
     #plt.show()
+    print(get_errors(all_x,x_opt))
+    print(get_errors(rfd_all_x,x_opt))
 def main():
     datasets = ['CaliforniaHousing']  #['w8a','CoverType', 'YearPredictions']
-    gammas = [100.]#, 100., 1000.]
+    gammas = [1.]#, 100., 1000.]
     for d in datasets:
         for g in gammas:
             synthetic_real_experiment(d,g)

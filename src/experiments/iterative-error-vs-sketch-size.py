@@ -29,82 +29,105 @@ from utils import get_errors, get_x_opt
 
 def error_vs_sketch_size():
     # Experimental parameters
-    gamma = 100.
+    gamma = 10.
     iterations = 5
-    n = 2**12
-    d = 2**9
+    n = 2**15 # 10000 #
+    d = 2**10 # 4000 #
     eff_rank = int(floor(0.25*d + 0.5))
-    # ds = DataFactory(n=n,d=d,effective_rank=eff_rank,tail_strength=0.125,random_seed=100)
-    # X,y,w0 = ds.shi_phillips_synthetic()
-    _X, _y = fetch_california_housing(return_X_y=True)
-    X_train, X_test, y, y_test = train_test_split(_X[:n], _y[:n], test_size=0.4, random_state=42)
-    rbf_feature = RBFSampler(gamma=0.001, random_state=100,n_components=d)
-    X = rbf_feature.fit_transform(X_train)
+    ds = DataFactory(n=n,d=d,effective_rank=eff_rank,tail_strength=0.125,random_seed=100)
+    X,y,w0 = ds.shi_phillips_synthetic()
+    # _X, _y = fetch_california_housing(return_X_y=True)
+    # X_train, X_test, y, y_test = train_test_split(_X[:n], _y[:n], test_size=0.4, random_state=42)
+    # rbf_feature = RBFSampler(gamma=0.001, random_state=100,n_components=d)
+    # X = rbf_feature.fit_transform(X_train)
 
     X = StandardScaler().fit_transform(X)
     x_opt = get_x_opt(X,y,gamma)
 
-    sketch_sizes = [128 + _*64 for _ in range(3)]
+    sketch_sizes = [400, 500, 600] #[128 + _*64 for _ in range(4)]
     print(sketch_sizes)
     fd_errors = {m : np.zeros(iterations+1) for m in sketch_sizes}
+    fd_times = {m : np.zeros(iterations+1) for m in sketch_sizes}
+    fd_sketch_times = np.zeros(len(sketch_sizes), dtype=float)
+    
     rfd_errors = {m : np.zeros(iterations+1) for m in sketch_sizes}
+    rfd_times = {m : np.zeros(iterations+1) for m in sketch_sizes}
+    rfd_sketch_times = np.zeros_like(fd_sketch_times)
 
-    for m in sketch_sizes:
+
+    for i,m in enumerate(sketch_sizes):
         print('#'*40)
         print('#'*10, f'\t FREQUENT DIRECTIONS: m={m}\t', '#'*10)
         fdr = FDRidge(fd_dim=m,gamma=gamma)
         _, all_x,fd_measured = fdr.fast_iterate(X,y,iterations)
         fd_errors[m] = get_errors(all_x,x_opt)
-        print(fd_errors[m])
-
+        fd_sketch_times[i] = fd_measured['sketch time']
+        fd_times[m] = fd_measured['all_times']
 
         print('#'*10, f'\t robust FREQUENT DIRECTIONS: m={m}\t', '#'*10)
         rfdr = FDRidge(fd_dim=m,fd_mode='RFD',gamma=gamma)
         _, rfd_all_x,rfd_measured = rfdr.fast_iterate(X,y,iterations)
         rfd_errors[m] = get_errors(rfd_all_x,x_opt)
-        print(rfd_errors[m])
-
-        # print(all_x)
-        # print(rfd_all_x)
+        rfd_sketch_times[i] = fd_measured['sketch time']
+        rfd_times[m] = rfd_measured['all_times']
     
-
+        # print(np.c_[fd_measured['all_times'], rfd_measured['all_times']])
+        # print(np.c_[fd_sketch_times, rfd_sketch_times])
+        
     # ! Plotting the error profile
     fig, ax = plt.subplots()
+    tfig, tax = plt.subplots()
     fd_color = 'black'
     rfd_color = 'gray'
-    markers = ['.', '*', '^']
+    markers = ['.', '*', '^', '+']
     lines = ['-', ':', '-.']
     cycle_count = 0
     my_err = np.zeros((iterations+1,2))
     # Plot the FD curves
     for sk_size, err in fd_errors.items():
-        #fd_err = err
+        fd_err = err
         rfd_err = rfd_errors[sk_size]
-        # print(np.c_[fd_err, rfd_err])
-
         _m = markers[cycle_count]
-        _l = lines[cycle_count]
+        # _l = lines[cycle_count]
         cycle_count += 1
-        #ax.plot(range(iterations+1), err, marker=_m, linestyle=_l, color=fd_color, label=sk_size)
-        ax.plot(range(iterations+1), rfd_err, marker=_m, linestyle=_l, color=rfd_color, label=sk_size)
+        all_fd_time = fd_times[sk_size]
+        all_rfd_time = rfd_times[sk_size]
+        print('PLOTTING TIME ', all_fd_time)
+        ax.plot(range(iterations+1), fd_err, marker=_m, linestyle=':', color=fd_color, label=sk_size)
+        ax.plot(range(iterations+1), rfd_err, marker=_m, linestyle='-', color=rfd_color, label=sk_size)
+        tax.plot(all_fd_time, fd_err, marker=_m, linestyle=':', color=fd_color, label=sk_size)
+        tax.plot(all_rfd_time, rfd_err, marker=_m, linestyle='-', color=rfd_color, label=sk_size)
+    # tax.plot(sketch_sizes, fd_sketch_times, marker=_m, linestyle=':', color=fd_color, label='FD')
+    # tax.plot(sketch_sizes, rfd_sketch_times, marker=_m, linestyle='-', color=rfd_color, label='RFD')
 
-    # Plot the RFD curves
-    # cycle_count = 0
-    # for sk_size, rerr in rfd_errors.items():
-    #     my_err[:,1] = rerr
-    #     _m = markers[cycle_count]
-    #     _l = lines[cycle_count]
-    #     cycle_count += 1
-    #     ax.plot(range(iterations+1), rerr, marker=_m, linestyle=_l, color=rfd_color, label=sk_size)
         
-    #     print(my_err)
+
+    # * format the axes for ITERATIONS
     ax.set_yscale('log',base=10)
     ax.legend()
     ax.set_xlabel('Iterations')
     ax.set_ylabel('Error')
-    fname = '/home/dickens/code/FrequentDirectionsRidgeRegression/sandbox/figures/error-profile-sketch-size.png'
+    fname = '/home/dickens/code/FrequentDirectionsRidgeRegression/sandbox/figures/error-profile-sketch-size-iterations.png'
     # ! commenting this line as it is the save format for the paper
     fig.savefig(fname,dpi=200,bbox_inches='tight',pad_inches=None)
+
+    # * format the axes for TIME
+    tax.set_xlim(left=4)
+    tax.set_ylim(bottom=1E-12,top=1.0)
+    tax.set_yscale('log',base=10)
+    #tax.set_xscale('log',base=2)
+    tax.legend()
+    tax.grid()
+    tax.set_xlabel('Time')
+    tax.set_ylabel('Error')
+    tfname = '/home/dickens/code/FrequentDirectionsRidgeRegression/sandbox/figures/error-profile-sketch-size-time.png'
+    # ! commenting this line as it is the save format for the paper
+    tfig.savefig(tfname,dpi=200,bbox_inches='tight',pad_inches=None)
+
+   
+    
+
+
 
 
 def main():
