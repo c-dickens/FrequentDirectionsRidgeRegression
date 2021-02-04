@@ -48,6 +48,15 @@ class DataFactory:
         self.tail_strength = tail_strength
         self.rng = random_seed
 
+    def gaussian_design(self, variance=None):
+        A = np.random.standard_normal(size=(self.n, self.d))
+        x = np.random.randn(self.d)
+        x /= np.linalg.norm(x)
+        if variance == None:
+            variance = 1.0
+        y = A@x + variance*np.random.randn(self.n)
+        return A,y, x
+
     def shi_phillips_synthetic(self):
         '''
         Generates the low rank data from the shi-phillips paper.
