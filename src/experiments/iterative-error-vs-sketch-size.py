@@ -24,12 +24,13 @@ from sklearn.kernel_approximation import RBFSampler
 from plot_config import fd_params, rfd_params, sjlt_rp_params, gauss_rp_params, gauss_hs_params, sjlt_hs_params 
 import numpy as np
 from math import floor
+import json
 import matplotlib.pyplot as plt
 from utils import get_errors, get_x_opt
 
-def error_vs_sketch_size():
+def error_vs_sketch_size(gamma_reg=10.):
     # Experimental parameters
-    gamma = 10.
+    gamma = gamma_reg
     iterations = 5
     n = 2**15 # 10000 #
     d = 2**10 # 4000 #
@@ -44,8 +45,7 @@ def error_vs_sketch_size():
     X = StandardScaler().fit_transform(X)
     x_opt = get_x_opt(X,y,gamma)
 
-    sketch_sizes = [400, 500, 600] #[128 + _*64 for _ in range(4)]
-    print(sketch_sizes)
+    sketch_sizes = [400, 500, 600] 
     fd_errors = {m : np.zeros(iterations+1) for m in sketch_sizes}
     fd_times = {m : np.zeros(iterations+1) for m in sketch_sizes}
     fd_sketch_times = np.zeros(len(sketch_sizes), dtype=float)
@@ -53,6 +53,7 @@ def error_vs_sketch_size():
     rfd_errors = {m : np.zeros(iterations+1) for m in sketch_sizes}
     rfd_times = {m : np.zeros(iterations+1) for m in sketch_sizes}
     rfd_sketch_times = np.zeros_like(fd_sketch_times)
+
 
 
     for i,m in enumerate(sketch_sizes):
@@ -92,9 +93,8 @@ def error_vs_sketch_size():
         cycle_count += 1
         all_fd_time = fd_times[sk_size]
         all_rfd_time = rfd_times[sk_size]
-        print('PLOTTING TIME ', all_fd_time)
-        ax.plot(range(iterations+1), fd_err, marker=_m, linestyle=':', color=fd_color, label=sk_size)
-        ax.plot(range(iterations+1), rfd_err, marker=_m, linestyle='-', color=rfd_color, label=sk_size)
+        ax.plot(range(iterations+1), fd_err, marker=_m, linestyle=':', color=fd_color, label=f'FD:{sk_size}')
+        ax.plot(range(iterations+1), rfd_err, marker=_m, linestyle='-', color=rfd_color, label=f'RFD:{sk_size}')
         tax.plot(all_fd_time, fd_err, marker=_m, linestyle=':', color=fd_color, label=sk_size)
         tax.plot(all_rfd_time, rfd_err, marker=_m, linestyle='-', color=rfd_color, label=sk_size)
     # tax.plot(sketch_sizes, fd_sketch_times, marker=_m, linestyle=':', color=fd_color, label='FD')
@@ -107,7 +107,8 @@ def error_vs_sketch_size():
     ax.legend()
     ax.set_xlabel('Iterations')
     ax.set_ylabel('Error')
-    fname = '/home/dickens/code/FrequentDirectionsRidgeRegression/sandbox/figures/error-profile-sketch-size-iterations.png'
+    path = '/home/dickens/code/FrequentDirectionsRidgeRegression/sandbox/figures/'
+    fname = path + '/error-profile-sketch-size-iterations-' + str(int(gamma)) + '.png'
     # ! commenting this line as it is the save format for the paper
     fig.savefig(fname,dpi=200,bbox_inches='tight',pad_inches=None)
 
@@ -117,13 +118,32 @@ def error_vs_sketch_size():
     tax.set_yscale('log',base=10)
     #tax.set_xscale('log',base=2)
     tax.legend()
-    tax.grid()
+    #tax.grid()
     tax.set_xlabel('Time')
     tax.set_ylabel('Error')
-    tfname = '/home/dickens/code/FrequentDirectionsRidgeRegression/sandbox/figures/error-profile-sketch-size-time.png'
+    tfname = path + '/error-profile-sketch-size-time-' + str(int(gamma)) + '.png'
     # ! commenting this line as it is the save format for the paper
     tfig.savefig(tfname,dpi=200,bbox_inches='tight',pad_inches=None)
 
+
+    # ! Prepare and save the results in json format 
+    res_name = 'results/error-profile-sketch-size-' + str(int(gamma)) + '.json'
+
+    for d in [fd_errors, rfd_errors, fd_times, rfd_times]:
+        for k,v in d.items():
+            if type(v) == np.ndarray:
+                d[k] = v.tolist()
+
+    results = {
+        'iterations' : iterations,
+        'FD Error'   : fd_errors,
+        'RFD Error'  : rfd_errors,
+        'FD Times'   : fd_times,
+        'RFD Times'  : rfd_times,
+        'sketch sizes' : sketch_sizes
+    }
+    with open(res_name, 'w') as fp:
+        json.dump(results, fp,sort_keys=True, indent=4)
    
     
 
@@ -131,8 +151,8 @@ def error_vs_sketch_size():
 
 
 def main():
-    error_vs_sketch_size()
-    pass 
+    for g in [10., 100., 1000.]:
+        error_vs_sketch_size(g) 
 
 if __name__ =='__main__':
     main()
