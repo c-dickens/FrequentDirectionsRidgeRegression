@@ -51,7 +51,7 @@ class FrequentDirections:
             self.sketch = self.Vt * np.sqrt(self.sigma_squared).reshape(-1, 1)
 
     def get(self):
-        return self.sketch, self.sigma_squared, self.Vt
+        return self.sketch, self.sigma_squared, self.Vt, self.delta
 
 
 class FastFrequentDirections(FrequentDirections):

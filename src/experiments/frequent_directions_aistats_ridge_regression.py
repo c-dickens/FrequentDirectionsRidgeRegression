@@ -111,9 +111,9 @@ class FDRidge:
         TIMER_START = timer()
         sketcher.fit(X,batch_size=self.batch_size)
         SKETCH_TIME = timer() - TIMER_START
-        _, SigSq, Vt = sketcher.get()
+        _, SigSq, Vt, implicit_reg = sketcher.get()
         V = Vt.T
-        invTerm = (1./(SigSq + self.gamma )).reshape(-1,1)
+        invTerm = (1./(SigSq + implicit_reg + self.gamma )).reshape(-1,1)
 
         # Extra parameters we may need 
         XTy = (X.T@y).reshape(-1,1)
