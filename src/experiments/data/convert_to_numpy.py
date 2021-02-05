@@ -23,27 +23,27 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 datasets = {
-    'superconductor' : {
-        'path' : 'superconductor.csv',
-        'url'  : 'https://archive.ics.uci.edu/ml/datasets/Superconductivty+Data',
-        'target' : -1
-        },
+    # 'superconductor' : {
+    #     'path' : 'superconductor.csv',
+    #     'url'  : 'https://archive.ics.uci.edu/ml/datasets/Superconductivty+Data',
+    #     'target' : -1
+    #     },
 
     'covertype' : {
         'path' : 'covtype.data',
-        'url'  : 'https://archive.ics.uci.edu/ml/datasets/covertype',
+        'url'  : 'https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz',
         'target' : -1
         },
 
     'yearpredictions' : {
         'path' : 'YearPredictionMSD.txt',
-        'url'  : 'https://archive.ics.uci.edu/ml/datasets/YearPredictionMSD',
+        'url'  : 'https://archive.ics.uci.edu/ml/machine-learning-databases/00203/YearPredictionMSD.txt.zip',
         'target' : 0
         },
 
     'w8a' : {
         'path' : 'w8a',
-        'url'  : 'https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#w8a',
+        'url'  : 'https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/w8a',
     }   
 
     } 
@@ -53,6 +53,7 @@ datasets = {
 def main():
     from sklearn.datasets import load_svmlight_file
     for d in datasets:
+        print('INSPECTING DATASET ', d)
         try:
             # read the numpy file -- Numpy file exists
             dat = np.load(d+'.npy')
