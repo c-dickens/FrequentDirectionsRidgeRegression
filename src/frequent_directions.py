@@ -16,7 +16,6 @@
 import numpy as np
 from scipy import linalg
 
-
 class FrequentDirections:
     def __init__(self, d, sketch_dim=8):
         """
@@ -39,13 +38,18 @@ class FrequentDirections:
         Fits the FD transform to dataset X
         """
         n = X.shape[0]
+        aux = np.empty((self.sketch_dim+batch_size, self.d))
         for i in range(0, n, batch_size):
             batch = X[i:i + batch_size, :]
-            aux = np.concatenate((self.sketch, batch), axis=0)
-            try:
-                _, s, self.Vt = np.linalg.svd(aux, full_matrices=False)
-            except np.linalg.LinAlgError:
-                _, s, self.Vt = linalg.svd(aux, full_matrices=False, lapack_driver='gesvd')
+            #aux = np.concatenate((self.sketch, batch), axis=0)
+            aux[0:self.sketch_dim, :] = self.sketch
+            aux[self.sketch_dim:self.sketch_dim+batch.shape[0], :] = batch
+            # ! WARNING - SCIPY SEEMS MORE ROBUST THAN NUMPY SO COMMENTING THIS WHICH IS FASTER OVERALL
+            # try:
+            #     _, s, self.Vt = np.linalg.svd(aux, full_matrices=False)
+            # except np.linalg.LinAlgError:
+            #     _, s, self.Vt = linalg.svd(aux, full_matrices=False, lapack_driver='gesvd')
+            _, s, self.Vt = linalg.svd(aux, full_matrices=False, lapack_driver='gesdd')
             self.sigma_squared = s ** 2
             self.__rotate_and_reduce__()
             self.sketch = self.Vt * np.sqrt(self.sigma_squared).reshape(-1, 1)
