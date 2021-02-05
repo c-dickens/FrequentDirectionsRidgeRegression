@@ -99,16 +99,22 @@ class RPRidge:
         'updates'     : np.zeros((d,iterations),dtype=float),
         'sketch'      : None
         }
-
+        SKETCH_TIME = 0.0 
         TIMER_START = timer()
         XTy = (X.T@y).reshape(-1,1)
         for it in range(iterations):
+            # * Timing the sketch separately
+            SKETCH_TIMER_START = timer()
             SA = self._get_sketch(X,seed=it)
+            SKETCH_TIME += timer() - SKETCH_TIMER_START
+            
+            # * Into grad updates
             grad = X.T@(X@w) + self.gamma*w - XTy
             update = update_method(SA, grad)
             w += - update 
             all_w[:,it] = np.squeeze(w)
             measurables['all_times'][it+1] = timer() - TIMER_START
+        measurables['sketch time'] = SKETCH_TIME
         return np.squeeze(w), all_w, measurables
 
 
@@ -132,16 +138,18 @@ class RPRidge:
         'updates'     : np.zeros((d,iterations),dtype=float),
         'sketch'      : None
         }
-
+       
         TIMER_START = timer()
         XTy = (X.T@y).reshape(-1,1)
         SA = self._get_sketch(X,seed)
+        SKETCH_TIME = timer() - TIMER_START
         for it in range(iterations):
             grad = X.T@(X@w) + self.gamma*w - XTy
             update = update_method(SA, grad)
             w += - update 
             all_w[:,it] = np.squeeze(w)
             measurables['all_times'][it+1] = timer() - TIMER_START
+        measurables['sketch time'] = SKETCH_TIME
         return np.squeeze(w), all_w, measurables
 
     def _get_sketch(self,data,seed=10):
