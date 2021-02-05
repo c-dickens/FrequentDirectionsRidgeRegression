@@ -20,6 +20,10 @@
 # README: Datasets 
 
 We have used various open datasets for experimentation.  These are generally too large to be stored in 
-the repo but they can easily be obtained by running `convert_to_numpy.py` which will download the 
-datasets and save them in the `.npy` format for later use,
+the repo but they can easily be obtained by downloading the data and the running `convert_to_numpy.py`.
+For every dataset `d` in the dictionary `datasets` there is a `url` key which is the url from which the data is pulled.
+Then execute `wget url - O path` where `path` is again a key in the dictionary.
+When the three datasets are downloaded one should execute `convert_to_numpy.py` which will put them in 
+a consistent`[X,y]` format for later usage.
+Additionally, the arrays will be saved in the `.npy` format.
 - 
