@@ -43,9 +43,10 @@ def error_vs_sketch_size(gamma_reg=10.):
     # X = rbf_feature.fit_transform(X_train)
 
     X = StandardScaler().fit_transform(X)
+    X /= np.linalg.norm(X,ord='fro')**2 
     x_opt = get_x_opt(X,y,gamma)
 
-    sketch_sizes = [400, 500, 600] 
+    sketch_sizes = [400] 
     fd_errors = {m : np.zeros(iterations+1) for m in sketch_sizes}
     fd_times = {m : np.zeros(iterations+1) for m in sketch_sizes}
     fd_sketch_times = np.zeros(len(sketch_sizes), dtype=float)
