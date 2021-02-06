@@ -36,13 +36,13 @@ def real_data_error_profile(data_name,sketch_size):
     '''
     # * Experimental parameters
     n = 20000
-    trials = 1
+    trials = 5
     iterations = 10
     ds = DataFactory(n=n)
     if data_name == 'CoverType':
         _X,_y = ds.fetch_forest_cover()
         feature_expansion = 'Polynomial'
-        features = [3]
+        features = [2,3]
     elif data_name == 'w8a':
         _X,_y= ds.fetch_w8a()
         feature_expansion = 'RBF'
@@ -218,7 +218,7 @@ def real_data_error_profile(data_name,sketch_size):
 
 
 def main():
-    datasets = ['CoverType']#,'', 'YearPredictions']['w8a']: #
+    datasets = ['CaliforniaHousing', 'CoverType', 'w8a', 'YearPredictions']
     for d in datasets:
         real_data_error_profile(d,300) 
 
