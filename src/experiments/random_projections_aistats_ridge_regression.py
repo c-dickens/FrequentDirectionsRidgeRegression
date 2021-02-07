@@ -54,7 +54,7 @@ class RPRidge:
         XTy = (X.T@y).reshape(-1,1)
         
         for it in range(iterations):
-            SA = self._get_sketch(X,seed=it)
+            SA = self._get_sketch(X,seed=100*it)
             H = SA.T@SA + (self.gamma)*np.eye(d)
             H_inv = np.linalg.pinv(H)
             grad = X.T@(X@w) + self.gamma*w - XTy
@@ -105,7 +105,7 @@ class RPRidge:
         for it in range(iterations):
             # * Timing the sketch separately
             SKETCH_TIMER_START = timer()
-            SA = self._get_sketch(X,seed=it)
+            SA = self._get_sketch(X,seed=10*it)
             SKETCH_TIME += timer() - SKETCH_TIMER_START
             
             # * Into grad updates
@@ -156,11 +156,10 @@ class RPRidge:
         '''
         Performs the sketch depending on the chosen mode.
         '''
-        np.random.seed(seed)
         if self.rp_mode == 'Gaussian':
-            return self._gaussian_projection(data,self.rp_dim)
+            return self._gaussian_projection(data,seed)
         elif self.rp_mode == 'SJLT':
-            return self._sparse_projection(data,self.rp_dim)
+            return self._sparse_projection(data,10,seed)
         else:
             raise NotImplementedError
 
