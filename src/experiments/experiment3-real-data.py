@@ -229,7 +229,7 @@ def real_data_error_profile(data_name,sketch_size):
 
 
 def main():
-    datasets = ['CaliforniaHousing',]#'CaliforniaHousing', 'CoverType',  'YearPredictions']
+    datasets = ['w8a', 'YearPredictions']#'CaliforniaHousing', 'CoverType',  'YearPredictions']
     for d in datasets:
         real_data_error_profile(d,300) 
 
